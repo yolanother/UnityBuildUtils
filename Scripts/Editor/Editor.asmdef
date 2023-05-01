@@ -1,7 +1,7 @@
 {
-    "name": "",
-    "rootNamespace": "",
-    "includePlatforms": [],
+    "name": "DoubTech.Builds.Editor",
+    "rootNamespace": "DoubTech.Builds",
+    "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
