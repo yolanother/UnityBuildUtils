@@ -7,6 +7,45 @@ namespace DoubTech.Builds
 {
     public class CustomBuilder
     {
+        [MenuItem("Build/Install and Run APK")]
+        public static void InstallAndRunApk()
+        {
+            string apkPath = EditorUtility.OpenFilePanel("Select APK", "", "apk");
+            if (string.IsNullOrEmpty(apkPath))
+            {
+                Debug.LogError("No APK file selected.");
+                return;
+            }
+
+            InstallApk(apkPath);
+            RunApk();
+        }
+
+        private static void InstallApk(string apkPath)
+        {
+            string installCommand = $"adb install -r \"{apkPath}\"";
+            System.Diagnostics.Process.Start("cmd.exe", $"/C {installCommand}");
+            Debug.Log("Installing APK...");
+        }
+
+        private static void RunApk()
+        {
+            string packageName = GetPackageName();
+            if (string.IsNullOrEmpty(packageName))
+            {
+                Debug.LogError("Cannot get package name from the project's package setup.");
+                return;
+            }
+
+            string launchCommand = $"adb shell monkey -p {packageName} -c android.intent.category.LAUNCHER 1";
+            System.Diagnostics.Process.Start("cmd.exe", $"/C {launchCommand}");
+            Debug.Log("Running APK...");
+        }
+
+        private static string GetPackageName()
+        {
+            return PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android);
+        }
         public static void Build(BuildSettingsSO buildSettings)
         {
             // Set the build options
@@ -65,6 +104,8 @@ namespace DoubTech.Builds
 
             Debug.Log($"Build completed and copied to {destinationPath}");
             EditorUtility.RevealInFinder(destinationPath);
+            buildSettings.lastBuild = buildPlayerOptions.locationPathName;
+            EditorUtility.SetDirty(buildSettings);
         }
 
         public static void Run(BuildSettingsSO buildSettings)
@@ -82,6 +123,42 @@ namespace DoubTech.Builds
             else
             {
                 Debug.LogError($"Unable to find build at {destinationPath}");
+            }
+        }
+
+        public static void BuildGUID(string guid)
+        {
+            var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            BuildSettingsSO buildSettings = AssetDatabase.LoadAssetAtPath<BuildSettingsSO>(assetPath);
+            if (buildSettings != null)
+            {
+                CustomBuilder.Build(buildSettings);
+            }
+            else
+            {
+                Debug.LogError("BuildSettingsSO not found.");
+            }
+        }
+
+        public static void BuildAndRunGUID(string guid)
+        {
+            BuildGUID(guid);
+            RunGUID(guid);
+        }
+
+        public static void RunGUID(string guid)
+        {
+            var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            BuildSettingsSO buildSettings = AssetDatabase.LoadAssetAtPath<BuildSettingsSO>(assetPath);
+            switch(buildSettings.buildTarget)
+            {
+                case BuildTarget.Android:
+                    InstallApk(buildSettings.lastBuild);
+                    RunApk();
+                    break;
+                default:
+                    Run(buildSettings);
+                    break;
             }
         }
     }

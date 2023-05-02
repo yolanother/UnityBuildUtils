@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -88,6 +89,13 @@ namespace DoubTech.Builds
                 CustomBuilder.Build(buildSettings);
                 CustomBuilder.Run(buildSettings);
             }
+            
+            // Word wrap the label text
+            var wasWrapped = EditorStyles.label.wordWrap;
+            EditorStyles.label.wordWrap = true;
+            GUILayout.Label(new GUIContent("Last build: " + Path.GetFileName(buildSettings.lastBuild), buildSettings.lastBuild));
+            EditorStyles.label.wordWrap = false;
+            EditorStyles.label.wordWrap = wasWrapped;
             
             GUILayout.Space(16);
             GUILayout.Label("Utilities", EditorStyles.boldLabel);

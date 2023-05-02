@@ -16,5 +16,6 @@ namespace DoubTech.Builds
         public int majorVersion = 0;
         public int minorVersion = 0;
         public int buildNumber = 1;
+        public string lastBuild;
     }
 }
